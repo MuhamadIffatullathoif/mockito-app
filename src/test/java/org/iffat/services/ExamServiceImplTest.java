@@ -48,11 +48,23 @@ class ExamServiceImplTest {
     }
 
     @Test
-    void testQuestionsExam() {
+    void testQuestionsExamVerify() {
         when(examRepository.findAll()).thenReturn(Data.EXAMS);
         when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
         Exam exam = examService.findExamByNameWithQuestions("Mathematics");
         assertEquals(5, exam.getQuestions().size());
         assertTrue(exam.getQuestions().contains("Arithmetic"));
+        verify(examRepository).findAll();
+        verify(questionRepository).findQuestionsByExamId(5L);
+    }
+
+    @Test
+    void testNoExistsExamVerify() {
+        when(examRepository.findAll()).thenReturn(Collections.emptyList());
+        when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
+        Exam exam = examService.findExamByNameWithQuestions("Mathematics");
+        assertNull(exam);
+        verify(examRepository).findAll();
+        verify(questionRepository).findQuestionsByExamId(5L);
     }
 }
