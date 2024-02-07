@@ -6,7 +6,12 @@ import org.iffat.repositories.ExamRepositoryImpl;
 import org.iffat.repositories.QuestionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,17 +21,22 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class ExamServiceImplTest {
 
+    @Mock
     ExamRepository examRepository;
+    @Mock
     QuestionRepository questionRepository;
-    ExamService examService;
+    @InjectMocks
+    ExamServiceImpl examService;
 
     @BeforeEach
     void setUp() {
-        examRepository = mock(ExamRepository.class);
-        questionRepository = mock(QuestionRepository.class);
-        examService = new ExamServiceImpl(examRepository, questionRepository);
+        // MockitoAnnotations.openMocks(this);
+        // examRepository = mock(ExamRepository.class);
+        // questionRepository = mock(QuestionRepository.class);
+        // examService = new ExamServiceImpl(examRepository, questionRepository);
     }
 
     @Test
