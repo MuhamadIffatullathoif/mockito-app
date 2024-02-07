@@ -11,7 +11,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,6 +45,7 @@ class ExamServiceImplTest {
     void findExamByName() {
         when(examRepository.findAll()).thenReturn(Data.EXAMS);
         Optional<Exam> exam = examService.findExamByName("Mathematics");
+
         assertTrue(exam.isPresent());
         assertEquals(5L, exam.get().getId());
         assertEquals("Mathematics", exam.get().getName());
@@ -50,18 +53,28 @@ class ExamServiceImplTest {
 
     @Test
     void findExamByNameEmptyList() {
+        // given
         List<Exam> exams = Collections.emptyList();
         when(examRepository.findAll()).thenReturn(exams);
+
+        // when
         Optional<Exam> exam = examService.findExamByName("Mathematics");
+
+        // then
         assertFalse(exam.isPresent());
         assertTrue(exam.isEmpty());
     }
 
     @Test
     void testQuestionsExamVerify() {
+        // given
         when(examRepository.findAll()).thenReturn(Data.EXAMS);
         when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
+
+        // when
         Exam exam = examService.findExamByNameWithQuestions("Mathematics");
+
+        // then
         assertEquals(5, exam.getQuestions().size());
         assertTrue(exam.getQuestions().contains("Arithmetic"));
         verify(examRepository).findAll();
@@ -70,9 +83,14 @@ class ExamServiceImplTest {
 
     @Test
     void testNoExistsExamVerify() {
+        // given
         when(examRepository.findAll()).thenReturn(Collections.emptyList());
         when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
+
+        // when
         Exam exam = examService.findExamByNameWithQuestions("Mathematics");
+
+        // then
         assertNull(exam);
         verify(examRepository).findAll();
         verify(questionRepository).findQuestionsByExamId(anyLong());
@@ -80,16 +98,44 @@ class ExamServiceImplTest {
 
     @Test
     void testSaveExam() {
+        // given
         Exam newExam = Data.EXAM;
         newExam.setQuestions(Data.QUESTIONS);
-
         when(examRepository.save(any(Exam.class))).thenReturn(Data.EXAM);
+
+        // when
         Exam exam = examService.save(newExam);
 
+        // then
         assertNotNull(exam.getId());
         assertEquals(8L, exam.getId());
         assertEquals("Physics", exam.getName());
+        verify(examRepository).save(any(Exam.class));
+        verify(questionRepository).saveVaried(anyList());
+    }
 
+    @Test
+    void testSaveExamIncrementalID() {
+        // given
+        Exam newExam = Data.EXAM;
+        newExam.setQuestions(Data.QUESTIONS);
+        when(examRepository.save(any(Exam.class))).then(new Answer<Exam>() {
+            Long sequence = 8L;
+            @Override
+            public Exam answer(InvocationOnMock invocation) throws Throwable {
+                Exam exam = invocation.getArgument(0);
+                exam.setId(sequence++);
+                return exam;
+            }
+        });
+
+        // when
+        Exam exam = examService.save(newExam);
+
+        // then
+        assertNotNull(exam.getId());
+        assertEquals(8L, exam.getId());
+        assertEquals("Physics", exam.getName());
         verify(examRepository).save(any(Exam.class));
         verify(questionRepository).saveVaried(anyList());
     }
