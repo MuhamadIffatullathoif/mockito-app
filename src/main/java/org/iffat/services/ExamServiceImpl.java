@@ -29,11 +29,19 @@ public class ExamServiceImpl implements ExamService {
     public Exam findExamByNameWithQuestions(String name) {
         Optional<Exam> examOptional = findExamByName(name);
         Exam exam = null;
-        if(examOptional.isPresent()) {
+        if (examOptional.isPresent()) {
             exam = examOptional.orElseThrow();
             List<String> questions = questionRepository.findQuestionsByExamId(exam.getId());
             exam.setQuestions(questions);
         }
         return exam;
+    }
+
+    @Override
+    public Exam save(Exam exam) {
+        if (!exam.getQuestions().isEmpty()) {
+            questionRepository.saveVaried(exam.getQuestions());
+        }
+        return examRepository.save(exam);
     }
 }

@@ -75,6 +75,22 @@ class ExamServiceImplTest {
         Exam exam = examService.findExamByNameWithQuestions("Mathematics");
         assertNull(exam);
         verify(examRepository).findAll();
-        verify(questionRepository).findQuestionsByExamId(5L);
+        verify(questionRepository).findQuestionsByExamId(anyLong());
+    }
+
+    @Test
+    void testSaveExam() {
+        Exam newExam = Data.EXAM;
+        newExam.setQuestions(Data.QUESTIONS);
+
+        when(examRepository.save(any(Exam.class))).thenReturn(Data.EXAM);
+        Exam exam = examService.save(newExam);
+
+        assertNotNull(exam.getId());
+        assertEquals(8L, exam.getId());
+        assertEquals("Physics", exam.getName());
+
+        verify(examRepository).save(any(Exam.class));
+        verify(questionRepository).saveVaried(anyList());
     }
 }
