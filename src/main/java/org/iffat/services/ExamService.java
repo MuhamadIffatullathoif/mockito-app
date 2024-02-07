@@ -2,6 +2,8 @@ package org.iffat.services;
 
 import org.iffat.models.Exam;
 
+import java.util.Optional;
+
 public interface ExamService {
-    Exam findExamByName(String name);
+    Optional<Exam> findExamByName(String name);
 }
