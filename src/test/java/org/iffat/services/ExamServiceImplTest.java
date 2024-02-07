@@ -31,11 +31,7 @@ class ExamServiceImplTest {
 
     @Test
     void findExamByName() {
-        List<Exam> exams = Arrays.asList(
-                new Exam(5L, "Mathematics"),
-                new Exam(6L, "Language"),
-                new Exam(7L, "History"));
-        when(examRepository.findAll()).thenReturn(exams);
+        when(examRepository.findAll()).thenReturn(Data.EXAMS);
         Optional<Exam> exam = examService.findExamByName("Mathematics");
         assertTrue(exam.isPresent());
         assertEquals(5L, exam.get().getId());
@@ -49,5 +45,14 @@ class ExamServiceImplTest {
         Optional<Exam> exam = examService.findExamByName("Mathematics");
         assertFalse(exam.isPresent());
         assertTrue(exam.isEmpty());
+    }
+
+    @Test
+    void testQuestionsExam() {
+        when(examRepository.findAll()).thenReturn(Data.EXAMS);
+        when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
+        Exam exam = examService.findExamByNameWithQuestions("Mathematics");
+        assertEquals(5, exam.getQuestions().size());
+        assertTrue(exam.getQuestions().contains("Arithmetic"));
     }
 }
