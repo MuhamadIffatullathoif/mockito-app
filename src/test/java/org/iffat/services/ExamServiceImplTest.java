@@ -321,4 +321,29 @@ class ExamServiceImplTest {
         inOrder.verify(examRepository).findAll();
         inOrder.verify(questionRepository).findQuestionsByExamId(6L);
     }
+
+    @Test
+    void testNumberInvocations() {
+        when(examRepository.findAll()).thenReturn(Data.EXAMS);
+        examService.findExamByNameWithQuestions("Mathematics");
+
+        verify(questionRepository).findQuestionsByExamId(5L);
+        verify(questionRepository, times(1)).findQuestionsByExamId(5L);
+        verify(questionRepository, atLeast(1)).findQuestionsByExamId(5L);
+        verify(questionRepository, atLeastOnce()).findQuestionsByExamId(5L);
+        verify(questionRepository, atMost(1)).findQuestionsByExamId(5L);
+        verify(questionRepository, atMostOnce()).findQuestionsByExamId(5L);
+    }
+
+    @Test
+    void testNumberInvocation() {
+        when(examRepository.findAll()).thenReturn(Collections.emptyList());
+        examService.findExamByNameWithQuestions("Mathematics");
+
+        verify(questionRepository, never()).findQuestionsByExamId(5L);
+        verifyNoInteractions(questionRepository);
+
+        verify(examRepository).findAll();
+        verify(examRepository, times(1)).findAll();
+    }
 }
