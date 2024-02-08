@@ -6,10 +6,7 @@ import org.iffat.repositories.QuestionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
@@ -30,6 +27,9 @@ class ExamServiceImplTest {
     QuestionRepository questionRepository;
     @InjectMocks
     ExamServiceImpl examService;
+
+    @Captor
+    ArgumentCaptor<Long> captor;
 
     @BeforeEach
     void setUp() {
@@ -195,5 +195,17 @@ class ExamServiceImplTest {
             return "is for a custom error message that mockito prints in case the test fails " +
                     +argument + " must be a positive integer";
         }
+    }
+
+    @Test
+    void testArgumentCaptor() {
+        when(examRepository.findAll()).thenReturn(Data.EXAMS);
+        // when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
+        examService.findExamByNameWithQuestions("Mathematics");
+
+        // ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
+        verify(questionRepository).findQuestionsByExamId(captor.capture());
+
+        assertEquals(5L, captor.getValue());
     }
 }
