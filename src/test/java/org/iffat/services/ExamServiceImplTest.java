@@ -306,4 +306,19 @@ class ExamServiceImplTest {
         assertTrue(exam.getQuestions().contains("geometric"));
         assertEquals("Mathematics", exam.getName());
     }
+
+    @Test
+    void testOrderInvocations() {
+        when(examRepository.findAll()).thenReturn(Data.EXAMS);
+
+        examService.findExamByNameWithQuestions("Mathematics");
+        examService.findExamByNameWithQuestions("Language");
+
+        InOrder inOrder = inOrder(examRepository, questionRepository);
+        inOrder.verify(examRepository).findAll();
+        inOrder.verify(questionRepository).findQuestionsByExamId(5L);
+
+        inOrder.verify(examRepository).findAll();
+        inOrder.verify(questionRepository).findQuestionsByExamId(6L);
+    }
 }
