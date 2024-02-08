@@ -6,6 +6,7 @@ import org.iffat.repositories.QuestionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -166,5 +167,33 @@ class ExamServiceImplTest {
 //        verify(questionRepository).findQuestionsByExamId(ArgumentMatchers.argThat(arg -> arg != null && arg.equals(5L)));
         verify(questionRepository).findQuestionsByExamId(ArgumentMatchers.argThat(arg -> arg != null && arg >= 5L));
 //        verify(questionRepository).findQuestionsByExamId(ArgumentMatchers.eq(5L));
+    }
+
+    @Test
+    void testArgumentMatchersCustom() {
+        when(examRepository.findAll()).thenReturn(Data.EXAMS_ID_NEGATIVE);
+        when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
+
+        examService.findExamByNameWithQuestions("Mathematics");
+
+        verify(examRepository).findAll();
+        verify(questionRepository).findQuestionsByExamId(ArgumentMatchers.argThat(new MyArgsMatchers()));
+    }
+
+    public static class MyArgsMatchers implements ArgumentMatcher<Long> {
+
+        private Long argument;
+
+        @Override
+        public boolean matches(Long argument) {
+            this.argument = argument;
+            return argument != null && argument > 0;
+        }
+
+        @Override
+        public String toString() {
+            return "is for a custom error message that mockito prints in case the test fails " +
+                    +argument + " must be a positive integer";
+        }
     }
 }
