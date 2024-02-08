@@ -216,7 +216,53 @@ class ExamServiceImplTest {
         doThrow(IllegalArgumentException.class).when(questionRepository).saveVaried(anyList());
 
         assertThrows(IllegalArgumentException.class, () -> {
-           examService.save(exam);
+            examService.save(exam);
         });
+    }
+
+    @Test
+    void testDoAnswer() {
+        when(examRepository.findAll()).thenReturn(Data.EXAMS);
+        // when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
+        doAnswer(invocation -> {
+            Long id = invocation.getArgument(0);
+            return id == 5L ? Data.QUESTIONS : null;
+        }).when(questionRepository).findQuestionsByExamId(anyLong());
+
+        Exam exam = examService.findExamByNameWithQuestions("Mathematics");
+        assertEquals(5L, exam.getId());
+        assertEquals(5, exam.getQuestions().size());
+        assertTrue(exam.getQuestions().contains("geometric"));
+        assertEquals("Mathematics", exam.getName());
+
+        verify(questionRepository).findQuestionsByExamId(anyLong());
+    }
+
+    @Test
+    void testDoAnswerSaveExamIncrementalID() {
+        // given
+        Exam newExam = Data.EXAM;
+        newExam.setQuestions(Data.QUESTIONS);
+
+        doAnswer(new Answer<Exam>() {
+            Long sequence = 8L;
+
+            @Override
+            public Exam answer(InvocationOnMock invocation) throws Throwable {
+                Exam exam = invocation.getArgument(0);
+                exam.setId(sequence++);
+                return exam;
+            }
+        }).when(examRepository).save(any(Exam.class));
+
+        // when
+        Exam exam = examService.save(newExam);
+
+        // then
+        assertNotNull(exam.getId());
+        assertEquals(8L, exam.getId());
+        assertEquals("Physics", exam.getName());
+        verify(examRepository).save(any(Exam.class));
+        verify(questionRepository).saveVaried(anyList());
     }
 }
