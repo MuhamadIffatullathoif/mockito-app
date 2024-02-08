@@ -6,6 +6,7 @@ import org.iffat.repositories.QuestionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -117,6 +118,7 @@ class ExamServiceImplTest {
         newExam.setQuestions(Data.QUESTIONS);
         when(examRepository.save(any(Exam.class))).then(new Answer<Exam>() {
             Long sequence = 8L;
+
             @Override
             public Exam answer(InvocationOnMock invocation) throws Throwable {
                 Exam exam = invocation.getArgument(0);
@@ -151,5 +153,18 @@ class ExamServiceImplTest {
         assertEquals(IllegalArgumentException.class, exception.getClass());
         verify(examRepository).findAll();
         verify(questionRepository).findQuestionsByExamId(isNull());
+    }
+
+    @Test
+    void testArgumentMatchers() {
+        when(examRepository.findAll()).thenReturn(Data.EXAMS);
+        when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
+
+        examService.findExamByNameWithQuestions("Mathematics");
+
+        verify(examRepository).findAll();
+//        verify(questionRepository).findQuestionsByExamId(ArgumentMatchers.argThat(arg -> arg != null && arg.equals(5L)));
+        verify(questionRepository).findQuestionsByExamId(ArgumentMatchers.argThat(arg -> arg != null && arg >= 5L));
+//        verify(questionRepository).findQuestionsByExamId(ArgumentMatchers.eq(5L));
     }
 }
