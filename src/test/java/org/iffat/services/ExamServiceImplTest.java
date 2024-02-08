@@ -2,20 +2,16 @@ package org.iffat.services;
 
 import org.iffat.models.Exam;
 import org.iffat.repositories.ExamRepository;
-import org.iffat.repositories.ExamRepositoryImpl;
 import org.iffat.repositories.QuestionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -138,5 +134,22 @@ class ExamServiceImplTest {
         assertEquals("Physics", exam.getName());
         verify(examRepository).save(any(Exam.class));
         verify(questionRepository).saveVaried(anyList());
+    }
+
+    @Test
+    void testHandlingException() {
+        // given
+        when(examRepository.findAll()).thenReturn(Data.EXAMS_ID_NULL);
+        when(questionRepository.findQuestionsByExamId(isNull())).thenThrow(IllegalArgumentException.class);
+
+        // when
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            examService.findExamByNameWithQuestions("Mathematics");
+        });
+
+        // then
+        assertEquals(IllegalArgumentException.class, exception.getClass());
+        verify(examRepository).findAll();
+        verify(questionRepository).findQuestionsByExamId(isNull());
     }
 }
