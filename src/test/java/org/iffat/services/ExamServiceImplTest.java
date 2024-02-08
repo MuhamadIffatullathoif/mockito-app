@@ -2,7 +2,9 @@ package org.iffat.services;
 
 import org.iffat.models.Exam;
 import org.iffat.repositories.ExamRepository;
+import org.iffat.repositories.ExamRepositoryImpl;
 import org.iffat.repositories.QuestionRepository;
+import org.iffat.repositories.QuestionRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,10 +23,11 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ExamServiceImplTest {
 
+    // mock impl because use doCallRealMethod can't interface
     @Mock
-    ExamRepository examRepository;
+    ExamRepositoryImpl examRepository;
     @Mock
-    QuestionRepository questionRepository;
+    QuestionRepositoryImpl questionRepository;
     @InjectMocks
     ExamServiceImpl examService;
 
@@ -34,8 +37,8 @@ class ExamServiceImplTest {
     @BeforeEach
     void setUp() {
         // MockitoAnnotations.openMocks(this);
-        // examRepository = mock(ExamRepository.class);
-        // questionRepository = mock(QuestionRepository.class);
+        // examRepository = mock(ExamRepositoryImpl.class);
+        // questionRepository = mock(QuestionRepositoryImpl.class);
         // examService = new ExamServiceImpl(examRepository, questionRepository);
     }
 
@@ -264,5 +267,16 @@ class ExamServiceImplTest {
         assertEquals("Physics", exam.getName());
         verify(examRepository).save(any(Exam.class));
         verify(questionRepository).saveVaried(anyList());
+    }
+
+    @Test
+    void testDoCallRealMethod() {
+        when(examRepository.findAll()).thenReturn(Data.EXAMS);
+        // when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(Data.QUESTIONS);
+        doCallRealMethod().when(questionRepository).findQuestionsByExamId(anyLong());
+        Exam exam = examService.findExamByNameWithQuestions("Mathematics");
+
+        verify(examRepository).findAll();
+        verify(questionRepository).findQuestionsByExamId(anyLong());
     }
 }
