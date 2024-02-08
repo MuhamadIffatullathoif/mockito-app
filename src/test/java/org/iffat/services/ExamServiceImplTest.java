@@ -13,6 +13,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -26,8 +27,16 @@ class ExamServiceImplTest {
     // mock impl because use doCallRealMethod can't interface
     @Mock
     ExamRepositoryImpl examRepository;
+
+    // spy must be implemented can't interface
+//    @Spy
+//    ExamRepositoryImpl examRepository;
     @Mock
     QuestionRepositoryImpl questionRepository;
+//    @Spy
+//    QuestionRepositoryImpl questionRepository;
+
+    // spy and mock still use inject mock
     @InjectMocks
     ExamServiceImpl examService;
 
@@ -278,5 +287,23 @@ class ExamServiceImplTest {
 
         verify(examRepository).findAll();
         verify(questionRepository).findQuestionsByExamId(anyLong());
+    }
+
+    @Test
+    void testSpy() {
+        ExamRepository examRepository = spy(ExamRepositoryImpl.class);
+        QuestionRepository questionRepository = spy(QuestionRepositoryImpl.class);
+        ExamService examService = new ExamServiceImpl(examRepository, questionRepository);
+
+        List<String> questions = Arrays.asList("geometric");
+        // spy and mock differ will call real method, when have return mock will call real method with mock data
+        // when(questionRepository.findQuestionsByExamId(anyLong())).thenReturn(questions);
+        doReturn(questions).when(questionRepository).findQuestionsByExamId(anyLong());
+
+        Exam exam = examService.findExamByNameWithQuestions("Mathematics");
+        assertEquals(5L, exam.getId());
+        assertEquals(1, exam.getQuestions().size());
+        assertTrue(exam.getQuestions().contains("geometric"));
+        assertEquals("Mathematics", exam.getName());
     }
 }
